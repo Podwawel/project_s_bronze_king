@@ -15,8 +15,12 @@ public class TenisBall : NetworkBehaviour
     private Vector3 _forceVector;
     public Vector3 ForceVector => _forceVector;
 
-    public void Shoot(Vector3 forceVector, Vector3 shotPoint, float power)
+    private ulong _ownerId;
+    public ulong OwnerId => _ownerId;
+
+    public void Shoot(Vector3 forceVector, Vector3 shotPoint, float power, ulong ownerId)
     {
+        _ownerId = ownerId;
         _forceVector = forceVector;
         _rigidbody.AddForceAtPosition(forceVector * power, shotPoint, ForceMode.Impulse);
         _rigidbody.AddTorque(forceVector * power);

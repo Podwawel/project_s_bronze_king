@@ -52,7 +52,7 @@ public class TenisBallCannon : NetworkBehaviour
 
         _setCooldown = true;
 
-        SpawnTenisBallServerRpc();
+        SpawnTenisBallServerRpc(NetworkManager.LocalClientId);
         //SpawnTenisBallLocal();
         StartCoroutine(CountCooldown());
 
@@ -61,7 +61,7 @@ public class TenisBallCannon : NetworkBehaviour
 
     #region SERVER_SIDE
     [ServerRpc]
-    public void SpawnTenisBallServerRpc()
+    public void SpawnTenisBallServerRpc(ulong id)
     {
         _pool = FindObjectOfType<NetworkObjectPool>();
         var ammo = _pool.GetNetworkObject(_ammoPrefab);
@@ -69,18 +69,18 @@ public class TenisBallCannon : NetworkBehaviour
         ammo.transform.position = _shotPoint.transform.position;
 
         ammo.Spawn();
-        ShotBall(ammo);
+        ShotBall(ammo, id);
 
         StartCoroutine(ReturnTenisBallToPool(ammo));
     }
 
-    public void ShotBall(NetworkObject ammoNet)
+    public void ShotBall(NetworkObject ammoNet, ulong id)
     {
         ammoNet.transform.position = _shotPoint.transform.position;
 
         var ammo = ammoNet.GetComponent<TenisBall>();
 
-        ammo.Shoot(_shotPoint.forward, _shotPoint.localPosition, _shotPower);
+        ammo.Shoot(_shotPoint.forward, _shotPoint.localPosition, _shotPower, id);
     }
 
     public IEnumerator ReturnTenisBallToPool(NetworkObject ammo)

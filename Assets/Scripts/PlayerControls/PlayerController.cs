@@ -21,16 +21,16 @@ public class PlayerController : NetworkBehaviour
     [SerializeField]
     private Transform _grabPoint;
     [SerializeField]
-    private Transform _grabPointFps;
+    private List<MeshRenderer> _meshesToDisable = new();
 
     [Space, SerializeField]
     private PlayerAnimator _playerAnimator;
     [SerializeField]
     private GameObject _playerModel;
     [SerializeField]
-    private GameObject _cannonModel;
+    private SkinnedMeshRenderer _playerMeshRenderer;
     [SerializeField]
-    private List<MeshRenderer> _meshesToDisable = new();
+    private Transform _playerSpine;
 
     [Space, SerializeField]
     private float _speed;
@@ -50,9 +50,16 @@ public class PlayerController : NetworkBehaviour
     [SerializeField]
     private Canvas _worldCanvas;
     [SerializeField]
+    private Image _playerNicknamePanel;
+    [SerializeField]
     private TextMeshProUGUI _myNicknameText;
     [SerializeField]
     private float _cursorSens;
+
+    [Space, SerializeField]
+    private Material _winMaterial;
+    [SerializeField]
+    private GameObject _winParticles;
 
     private Vector3 movement;
     private float _clampedRotationOnXAxis;
@@ -60,18 +67,21 @@ public class PlayerController : NetworkBehaviour
     private float _timeWithoutMove;
     private float _timeInAir;
     private bool _fireLock;
-
-    private DeathCamera _deathCam;
+    private bool _inputLock;
 
     private NetworkVariable<FixedString64Bytes> _playerNickname = new NetworkVariable<FixedString64Bytes>("not_loaded");
+    private NetworkVariable<Vector3> _playerColor = new NetworkVariable<Vector3>(new Vector3(1,1,1));
+    private NetworkVariable<float> _playerSpineRotation = new NetworkVariable<float>(0);
 
     public ulong myId { get; private set; }
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+
         if (IsOwner)
         {
-            WriteNicknameServerRpc(SessionData.instance.LocalPlayerNickname);           
+            WriteNicknameServerRpc(SessionData.instance.LocalPlayerNickname, SessionData.instance.LocalPlayerColor);           
         }
 
         NetworkManager.Singleton.OnClientConnectedCallback += WriteNickname;
@@ -79,23 +89,22 @@ public class PlayerController : NetworkBehaviour
 
         if (!IsOwner) return;
 
+        transform.position = new Vector3(0, 20, 0);
+
         _worldCanvas.gameObject.SetActive(false);
 
-        base.OnNetworkSpawn();
-
-        foreach (var mesh in _meshesToDisable)
-        {
-            mesh.enabled = true;
-        }
-
         myId = NetworkManager.LocalClientId;
-
-        _deathCam = FindObjectOfType<DeathCamera>();
 
         _playerModel.SetActive(false);
         _grabPoint.gameObject.SetActive(false);
 
+        foreach(var mesh in _meshesToDisable)
+        {
+            mesh.enabled = true;
+        }
+
         _physics.OnDeathEvent += CallRespawn;
+        _physics.OnWinEvent += OnWinActions;
 
         _inputController.InitializeInput();
         _inputController.OnJumpPerformed += Jump;
@@ -112,15 +121,18 @@ public class PlayerController : NetworkBehaviour
         _cannon.OnShotLoadedEvent += OnShotLoaded;
     }
 
-    [ServerRpc]
-    private void WriteNicknameServerRpc(FixedString64Bytes nickname)
+    [ServerRpc(RequireOwnership = false)]
+    private void WriteNicknameServerRpc(FixedString64Bytes nickname, Vector3 color)
     {
         _playerNickname.Value = nickname;
+        _playerColor.Value = color;
     }
 
     private void WriteNickname(ulong id)
     {
+        GameplayManager.instance.InitializeUI();
         _myNicknameText.text = _playerNickname.Value.ToString();
+        _playerNicknamePanel.color = new Color(_playerColor.Value.x, _playerColor.Value.y, _playerColor.Value.z, 0.8f);
     }
 
     private void AuthenticateCamera()
@@ -132,6 +144,8 @@ public class PlayerController : NetworkBehaviour
     private void LateUpdate()
     {
         SessionData.instance.RotateTowardsLocalPlayer(_worldCanvas.transform);
+
+        LeanBodyWithCamera(_playerSpineRotation.Value);
 
         if (!IsOwner) return;
 
@@ -150,10 +164,9 @@ public class PlayerController : NetworkBehaviour
     {
         float movementSpeed;
         var moveVector = _inputController.MoveVectorValue;
-
+        if (_inputLock) moveVector = Vector3.zero;
         if(moveVector.magnitude == 0)
         {
-
             _timeWithoutMove += Time.deltaTime;
             if (_timeWithoutMove > 0.5f)
             {
@@ -186,6 +199,7 @@ public class PlayerController : NetworkBehaviour
 
     private void Jump()
     {
+        if (_inputLock) return;
         if (!_physics.IsGrounded()) return;
 
         _playerAnimator.SetTrigger(Animation.JUMP);
@@ -194,17 +208,21 @@ public class PlayerController : NetworkBehaviour
 
     private void Fire()
     {
+        if (!IsOwner) return;
+
+        if (_inputLock) return;
+
         if (!_cursorLock.CursorLocked) return;
 
         if (_fireLock) return;
-
-        if (!IsOwner) return;
 
         if (_cannon) _cannon.Shot();
     }
     
     private void Look()
     {
+        if (_inputLock) return;
+
         if (!_cursorLock.CursorLocked) return;
 
         var lookVector = _inputController.LookVectorValue;
@@ -216,14 +234,26 @@ public class PlayerController : NetworkBehaviour
         _clampedRotationOnXAxis = Mathf.Clamp(_clampedRotationOnXAxis, -90f, 60f);
 
         _camera.transform.localRotation = Quaternion.Euler(_clampedRotationOnXAxis, 0f, 0f);
-        _playerAnimator.LeanBodyWithCamera(_clampedRotationOnXAxis);
+        SetBodyLeanRotationServerRpc(_clampedRotationOnXAxis);
         transform.Rotate(Vector3.up * CursorX);
+    }
+
+    [ServerRpc]
+    public void SetBodyLeanRotationServerRpc(float rot)
+    {
+        _playerSpineRotation.Value = rot;
+    }
+
+    private void LeanBodyWithCamera(float rot)
+    {
+        _playerSpine.transform.localRotation = Quaternion.Euler(-rot, 0f, 0f);
     }
 
     public void OnShotLoaded()
     {
         StartCoroutine(ZoomCameraForShot(_cannon.LoadTime, 65f));
         _fireLock = true;
+        _playerAnimator.SetTrigger(Animation.SHOOT);
         _speed *= 0.2f;
         //_cursorSens *= 0.01f;
     }
@@ -257,30 +287,123 @@ public class PlayerController : NetworkBehaviour
 
     private IEnumerator WaitForRespawn()
     {
-        _deathCam.OnDeath(_camera);
+        GameplayManager.instance.DeathCamera.OnDeath(_camera);
+        _inputLock = true;
         StartCoroutine(RespawnManager.instance.StartCounting((int)_respawnTime));
         yield return new WaitForSeconds(_respawnTime);
-        ResetAfterRespawn();
+        ResetPhysics();
         _physics.SetKinematic(true);
         yield return new WaitForEndOfFrame();
         transform.position = RespawnManager.instance.GetRespawnPoint();
         yield return new WaitForEndOfFrame();
-
-        _deathCam.OnRespawn(_camera);
+        _inputLock = false;
+        GameplayManager.instance.DeathCamera.OnRespawn(_camera);
         _physics.SetKinematic(false);
-        ResetAfterRespawn();
+        ResetPhysics();
     }
 
-    private void ResetAfterRespawn()
+    private void ResetPhysics()
     {
         movement = Vector3.zero;
         _timeInAir = 0;
         _physics.StopRigidbody();
     }
 
+    public void OnWinActions()
+    {
+        _inputLock = true;
+
+        foreach (var mesh in _meshesToDisable)
+        {
+            mesh.enabled = false;
+        }
+
+        ResetPhysics();
+
+        OnGameFinishedServerRpc(_playerNickname.Value);
+
+        StartCoroutine(WinActions());
+    }
+
+    private IEnumerator WinActions()
+    {
+        _playerAnimator.SetBool(Animation.CHARGE, true);
+
+        yield return new WaitForSeconds(2);
+
+        _playerModel.SetActive(true);
+
+        OnWinCelebrationServerRpc();     
+
+        yield return new WaitForSeconds(2);
+
+        AferWinActionsServerRpc();
+
+        _playerAnimator.SetBool(Animation.CHARGE, false);
+    }
+
+    [ClientRpc]
+    public void OnGameFinishedClientRpc(FixedString64Bytes winnerNickname)
+    {
+        OnGameFinished(winnerNickname);
+    }
+
+    private void OnGameFinished(FixedString64Bytes winnerNickname)
+    {
+        //_playerAnimator.SetTrigger(Animation.CHARGE);
+        _cursorLock.ForceCursorVisible();
+        _grabPoint.gameObject.SetActive(false);
+        GameplayManager.instance.TriggerWin(winnerNickname.ToString());
+    }
+
+    [ClientRpc]
+    public void AferWinActionsClientRpc()
+    {
+        AferWinActions();
+    }
+
+    private void AferWinActions()
+    {
+        //_playerAnimator.SetTrigger(Animation.VICTORY);
+        _winParticles.SetActive(true);
+        _playerMeshRenderer.material = _winMaterial;
+    }
+
+    [ClientRpc]
+    public void OnWinCelebrationClientRpc()
+    {
+        OnWinCelebration();
+    }
+
+    private void OnWinCelebration()
+    {
+        GameplayManager.instance.WinCamera.OnWin();
+        _camera.enabled = false;
+    }
+
+    [ServerRpc]
+    public void OnGameFinishedServerRpc(FixedString64Bytes winnerNickname)
+    {
+        OnGameFinishedClientRpc(winnerNickname);
+    }
+
+    [ServerRpc]
+    public void AferWinActionsServerRpc()
+    {
+        AferWinActionsClientRpc();
+    }
+
+    [ServerRpc]
+    public void OnWinCelebrationServerRpc()
+    {
+        OnWinCelebrationClientRpc();
+    }
+
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
+
+        if (!IsOwner) return;
 
         _cursorLock.ForceCursorVisible();
         SceneLoader.instance.ChangeScene(1);
@@ -289,8 +412,19 @@ public class PlayerController : NetworkBehaviour
         _inputController.OnJumpPerformed -= Jump;
 
         _physics.OnDeathEvent -= CallRespawn;
+        _physics.OnWinEvent -= OnWinActions;
+
         NetworkManager.Singleton.OnClientConnectedCallback -= WriteNickname;
         _cannon.OnShotPerformedEvent -= OnShotPerformed;
         _cannon.OnShotLoadedEvent -= OnShotLoaded;
+
+        DOTween.KillAll();
+        DestoryPlayerServerRpc();
+    }
+
+    [ServerRpc]
+    public void DestoryPlayerServerRpc()
+    {
+        Destroy(this);
     }
 }

@@ -14,7 +14,7 @@ public class RespawnManager : Singleton<RespawnManager>
     private Image _loadingImage;
     public Vector3 GetRespawnPoint()
     {
-        return new Vector3(0,15,0);
+        return new Vector3(0, 20, 0);
     }
 
     public IEnumerator StartCounting(int time)

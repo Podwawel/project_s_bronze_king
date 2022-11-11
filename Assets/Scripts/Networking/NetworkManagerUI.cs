@@ -122,7 +122,9 @@ public class NetworkManagerUI : MonoBehaviour
 
     private void JoinAsClient(Scene scene, LoadSceneMode mode)
     {
+        
         SessionData.instance.AssignLocalPlayerNickname(_nicknameInputField.text);
+        SessionData.instance.CreateLocalPlayerColor();
         NetworkManager.Singleton.StartClient();
         SceneLoader.instance.UnsubscribeOnSceneLoad(JoinAsClient);
     }
@@ -130,6 +132,7 @@ public class NetworkManagerUI : MonoBehaviour
     private void JoinAsHost(Scene scene, LoadSceneMode mode)
     {
         SessionData.instance.AssignLocalPlayerNickname(_nicknameInputField.text);
+        SessionData.instance.CreateLocalPlayerColor();
         NetworkManager.Singleton.StartHost();
         SceneLoader.instance.UnsubscribeOnSceneLoad(JoinAsHost);
     }

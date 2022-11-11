@@ -9,8 +9,10 @@ public class SessionData : Singleton<SessionData>
     private Transform _localPlayerTransform;
 
     private string _localPlayerNickname;
+    private Vector3 _localPlayerColor;
 
     public string LocalPlayerNickname => _localPlayerNickname;
+    public Vector3 LocalPlayerColor => _localPlayerColor;
 
     public void Initialize()
     {
@@ -25,6 +27,11 @@ public class SessionData : Singleton<SessionData>
     public void AssignLocalPlayerNickname(string nickname)
     {
         _localPlayerNickname = nickname;
+    }
+
+    public void CreateLocalPlayerColor()
+    {
+        _localPlayerColor = new Vector3(Random.Range(0.5f, 1), Random.Range(0.5f, 1), Random.Range(0.5f, 1));
     }
 
     public void ClearData()

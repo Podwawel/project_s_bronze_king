@@ -7,6 +7,7 @@ using System;
 public class PlayerPhysics : NetworkBehaviour
 {
     public event Action OnDeathEvent;
+    public event Action OnWinEvent;
 
     [SerializeField]
     private Rigidbody _rigidbody;
@@ -67,6 +68,7 @@ public class PlayerPhysics : NetworkBehaviour
         if (collision.gameObject.layer == 7)
         {
             var ball = collision.gameObject.GetComponent<TenisBall>();
+            if (NetworkManager.LocalClientId == ball.OwnerId) return;
             if (IsHost) ImpactPlayerByBallClientRpc(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 30, NetworkManager.LocalClientId);
             else AddForceImpulse(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 300);
             //ImpactPlayerByBallServerRpc(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 100);
@@ -89,9 +91,20 @@ public class PlayerPhysics : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.gameObject.layer == 9)
+        {
+            other.gameObject.SetActive(false);
+        }
+
+        if (!IsOwner) return;
+
         if (other.gameObject.layer == 6)
         {
             OnDeathEvent?.Invoke();
+        }
+        if (other.gameObject.layer == 9)
+        {
+            OnWinEvent?.Invoke();
         }
     }
 
