@@ -52,8 +52,8 @@ public class TenisBallCannon : NetworkBehaviour
 
         _setCooldown = true;
 
-        SpawnTenisBallServerRpc(NetworkManager.LocalClientId);
-        //SpawnTenisBallLocal();
+        if(SessionData.instance.ServerAuthorizedBallShooting) SpawnTenisBallServerRpc(NetworkManager.LocalClientId); // method for server authorized ball shooting
+        else SpawnTenisBallLocal(); // method for client authorized ball shooting
         StartCoroutine(CountCooldown());
 
         OnShotPerformedEvent?.Invoke();
@@ -97,48 +97,38 @@ public class TenisBallCannon : NetworkBehaviour
     }
     #endregion
 
-  /*  #region CLIENT_SIDE
+    #region CLIENT_SIDE
     public void SpawnTenisBallLocal()
     {
         var ammo = Instantiate(_ammoLocalPrefab);
         ammo.transform.position = _shotPoint.transform.position;
         var tenisBall = ammo.GetComponent<TenisBall>();
 
-        var otherClients = new List<ulong>();
-        var players = FindObjectsOfType<PlayerController>();
 
-        foreach(var player in players)
-        {
-            otherClients.Add(player.myId);
-            Debug.Log(player.myId);
-        }    
+        SpawnTenisBallServerRpc(_shotPoint.position, _shotPoint.forward, NetworkManager.LocalClientId);
 
-        otherClients.Remove(NetworkManager.LocalClientId);
-
-        ClientRpcParams clientRpcParams = new ClientRpcParams
-        {
-            Send = new ClientRpcSendParams
-            {
-                TargetClientIds = otherClients
-            }
-        };
-
-        SpawnTenisBallClientRpc(_shotPoint.position, _shotPoint.forward, clientRpcParams);
-
-        tenisBall.Shoot(_shotPoint.forward, _shotPoint.localPosition, _shotPower);
+        tenisBall.Shoot(_shotPoint.forward, _shotPoint.localPosition, _shotPower, NetworkManager.LocalClientId);
     }
 
     [ClientRpc]
-    public void SpawnTenisBallClientRpc(Vector3 spawn, Vector3 direction, ClientRpcParams clientParams = default)
+    public void SpawnTenisBallClientRpc(Vector3 spawn, Vector3 direction, ulong id)
     {
+        if (NetworkManager.LocalClientId == id) return;
+
         var ammo = Instantiate(_ammoLocalPrefab);
         ammo.transform.position = spawn;
         var tenisBall = ammo.GetComponent<TenisBall>();
 
-        tenisBall.Shoot(direction, spawn, _shotPower);
+        tenisBall.Shoot(direction, spawn, _shotPower, id);
     }
 
-    #endregion*/
+    [ServerRpc]
+    public void SpawnTenisBallServerRpc(Vector3 spawn, Vector3 direction, ulong id)
+    {
+        SpawnTenisBallClientRpc(spawn, direction,  id);
+    }
+
+    #endregion
 
     public IEnumerator CountCooldown()
     {

@@ -49,6 +49,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "PhotoMode",
+                    "type": "Button",
+                    "id": "d568153d-ac05-47f0-97b1-25a0e0a676e6",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -285,6 +294,17 @@
                 },
                 {
                     "name": "",
+                    "id": "e427c305-8b34-4afd-b178-a33ee5a0dc9c",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "c2c2e71b-0726-4c58-81f6-6a6e9828b4a3",
                     "path": "<XInputController>/start",
                     "interactions": "",
@@ -302,6 +322,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "CursorLock",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "151cd3fd-efb7-40ce-9a14-f44608fd4bf8",
+                    "path": "<Keyboard>/f2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PhotoMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "651fdfb4-0790-4ff7-8bfb-ee9572d4bb14",
+                    "path": "<Gamepad>/select",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PhotoMode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

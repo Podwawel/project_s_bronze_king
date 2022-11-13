@@ -159,6 +159,7 @@ namespace Unity.BossRoom.Infrastructure
             // Here we must reverse the logic in ReturnNetworkObject.
             var go = networkObject.gameObject;
             go.SetActive(true);
+            go.GetComponent<Rigidbody>().isKinematic = false;
 
             go.transform.position = position;
             go.transform.rotation = rotation;

@@ -18,8 +18,28 @@ public class TenisBall : NetworkBehaviour
     private ulong _ownerId;
     public ulong OwnerId => _ownerId;
 
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        SetKinematicClientRpc();
+        SetKinematicServerRpc();
+    }
+
+    [ClientRpc]
+    public void SetKinematicClientRpc()
+    {
+        _rigidbody.isKinematic = false;
+    }
+    [ServerRpc(RequireOwnership = false)]
+    public void SetKinematicServerRpc()
+    {
+        _rigidbody.isKinematic = false;
+    }
+
     public void Shoot(Vector3 forceVector, Vector3 shotPoint, float power, ulong ownerId)
     {
+        _rigidbody.isKinematic = false;
         _ownerId = ownerId;
         _forceVector = forceVector;
         _rigidbody.AddForceAtPosition(forceVector * power, shotPoint, ForceMode.Impulse);

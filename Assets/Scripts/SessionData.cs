@@ -11,11 +11,14 @@ public class SessionData : Singleton<SessionData>
     private string _localPlayerNickname;
     private Vector3 _localPlayerColor;
 
+
+    public bool ServerAuthorizedBallShooting { get; set; }
     public string LocalPlayerNickname => _localPlayerNickname;
     public Vector3 LocalPlayerColor => _localPlayerColor;
 
     public void Initialize()
     {
+        ServerAuthorizedBallShooting = true;
         DontDestroyOnLoad(this);
     } 
 

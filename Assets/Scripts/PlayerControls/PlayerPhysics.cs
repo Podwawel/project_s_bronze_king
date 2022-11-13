@@ -69,24 +69,24 @@ public class PlayerPhysics : NetworkBehaviour
         {
             var ball = collision.gameObject.GetComponent<TenisBall>();
             if (NetworkManager.LocalClientId == ball.OwnerId) return;
-            if (IsHost) ImpactPlayerByBallClientRpc(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 30, NetworkManager.LocalClientId);
-            else AddForceImpulse(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 300);
+            ImpactPlayerByBallServerRpc(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 30);
+            //AddForceImpulse(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 300);
+            //if(IsClient) AddForceImpulse(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 300);
             //ImpactPlayerByBallServerRpc(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 100);
             //AddForceImpulse(ball.ForceVector * ball.ForceApplied * Time.fixedDeltaTime * 100);
         }
     }
 
     [ClientRpc]
-    public void ImpactPlayerByBallClientRpc(Vector3 forceVector, ulong id)
+    public void ImpactPlayerByBallClientRpc(Vector3 forceVector)
     {
-        //if (NetworkManager.LocalClientId == id) 
         AddForceImpulse(forceVector);
     }
 
     [ServerRpc(RequireOwnership = false)]
     public void ImpactPlayerByBallServerRpc(Vector3 forceVector)
     {
-        AddForceImpulse(forceVector);
+        ImpactPlayerByBallClientRpc(forceVector);
     }
 
     private void OnTriggerEnter(Collider other)

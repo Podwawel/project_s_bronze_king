@@ -42,6 +42,8 @@ public class PlayerController : NetworkBehaviour
     private float _airSpeed;
     [SerializeField]
     private float _jumpHeight;
+    [SerializeField]
+    private float _jumpTimeOffset;
 
     [Space, SerializeField]
     private Camera _camera;
@@ -66,6 +68,7 @@ public class PlayerController : NetworkBehaviour
 
     private float _timeWithoutMove;
     private float _timeInAir;
+    private bool _jumpPerformed;
     private bool _fireLock;
     private bool _inputLock;
 
@@ -190,6 +193,7 @@ public class PlayerController : NetworkBehaviour
         else
         {
             _timeInAir += Time.deltaTime;
+            if(_timeInAir > _jumpTimeOffset) _jumpPerformed = false;
             if (_timeInAir > 0.6f) movement.y -= _fallSpeedPersSec * Time.deltaTime;
             movementSpeed = _airSpeed;
         }
@@ -200,8 +204,14 @@ public class PlayerController : NetworkBehaviour
     private void Jump()
     {
         if (_inputLock) return;
-        if (!_physics.IsGrounded()) return;
 
+        if (_physics.IsGrounded()) _jumpPerformed = false;
+
+        if (_jumpPerformed) return;
+
+        if (!_physics.IsGrounded() && _timeInAir > _jumpTimeOffset) return;
+
+        _jumpPerformed = true;
         _playerAnimator.SetTrigger(Animation.JUMP);
         _physics.SetVelocity(transform.up * _jumpHeight);
     }
@@ -305,6 +315,7 @@ public class PlayerController : NetworkBehaviour
     private void ResetPhysics()
     {
         movement = Vector3.zero;
+        _jumpPerformed = false;
         _timeInAir = 0;
         _physics.StopRigidbody();
     }

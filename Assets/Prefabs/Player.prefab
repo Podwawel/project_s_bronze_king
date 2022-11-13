@@ -503,6 +503,7 @@ GameObject:
   - component: {fileID: 8956223519523146958}
   - component: {fileID: 7746661692530948270}
   - component: {fileID: 8781602224439330479}
+  - component: {fileID: 8874010649285553906}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -567,6 +568,7 @@ MonoBehaviour:
   _respawnTime: 5
   _airSpeed: 9
   _jumpHeight: 10
+  _jumpTimeOffset: 0.3
   _camera: {fileID: 994239927306122846}
   _listener: {fileID: 340191258297442688}
   _worldCanvas: {fileID: 8047598195852555320}
@@ -601,10 +603,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rigidbody: {fileID: 975555793346281068}
-  _slopeForceRayLength: 1
-  _slopeForce: 1
+  _slopeForceRayLength: 2
+  _slopeForce: 3
   _groundCheck: {fileID: 3826820561691558836}
-  _distanceToGround: 0.1
+  _distanceToGround: 0.5
   _groundMask:
     serializedVersion: 2
     m_Bits: 8
@@ -732,6 +734,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Animator: {fileID: 7746661692530948270}
+--- !u!136 &8874010649285553906
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2106934584065438251}
+  m_Material: {fileID: 13400000, guid: 349bff30dd6d41e44bf00d559b52c968, type: 2}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  m_Radius: 0.38
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.88, z: 0}
 --- !u!1 &2128915031462327965
 GameObject:
   m_ObjectHideFlags: 0

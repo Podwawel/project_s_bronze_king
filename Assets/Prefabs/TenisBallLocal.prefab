@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 6665889998367840928}
   - component: {fileID: 5517041918177483033}
   - component: {fileID: 4516773284056092640}
-  m_Layer: 0
+  - component: {fileID: -3102465966279060022}
+  m_Layer: 7
   m_Name: TenisBallLocal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78,6 +79,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rigidbody: {fileID: 6665889998367840928}
   _forceApplied: 500
+--- !u!114 &-3102465966279060022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6665889998367840935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 951099334
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1001 &6665889998555910572
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -152,6 +169,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: c183828c9e720074c821f67892b0ea5a, type: 3}
       propertyPath: m_Name
       value: Tenis_ball
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c183828c9e720074c821f67892b0ea5a, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c183828c9e720074c821f67892b0ea5a, type: 3}
