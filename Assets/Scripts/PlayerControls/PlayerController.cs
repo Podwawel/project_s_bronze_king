@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 using Unity.Collections;
 using Unity.BossRoom.Infrastructure;
+using UnityEngine.Scripting;
 using DG.Tweening;
 
 public class PlayerController : NetworkBehaviour
@@ -44,6 +45,11 @@ public class PlayerController : NetworkBehaviour
     private float _jumpHeight;
     [SerializeField]
     private float _jumpTimeOffset;
+    [SerializeField]
+    private float _footstepsTimeSpan;
+
+    private float y;
+    public float x { get { return y; } private set { y = value; } }
 
     [Space, SerializeField]
     private Camera _camera;
@@ -63,17 +69,22 @@ public class PlayerController : NetworkBehaviour
     [SerializeField]
     private GameObject _winParticles;
 
+    private GameTimer _timer;
+
     private Vector3 movement;
     private float _clampedRotationOnXAxis;
 
     private float _timeWithoutMove;
     private float _timeInAir;
+    private float _timeBetweenSteps;
+
     private bool _jumpPerformed;
     private bool _fireLock;
     private bool _inputLock;
 
+    private NetworkVariable<bool> _allowFootsteps = new(false);
     private NetworkVariable<FixedString64Bytes> _playerNickname = new NetworkVariable<FixedString64Bytes>("not_loaded");
-    private NetworkVariable<Vector3> _playerColor = new NetworkVariable<Vector3>(new Vector3(1,1,1));
+    private NetworkVariable<Vector3> _playerColor = new NetworkVariable<Vector3>(new Vector3(1, 1, 1));
     private NetworkVariable<float> _playerSpineRotation = new NetworkVariable<float>(0);
 
     public ulong myId { get; private set; }
@@ -82,11 +93,7 @@ public class PlayerController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        if (IsOwner)
-        {
-            WriteNicknameServerRpc(SessionData.instance.LocalPlayerNickname, SessionData.instance.LocalPlayerColor);           
-        }
-
+        GameplayManager.instance.InitializeUI();
         NetworkManager.Singleton.OnClientConnectedCallback += WriteNickname;
         WriteNickname(1);
 
@@ -95,6 +102,8 @@ public class PlayerController : NetworkBehaviour
         transform.position = new Vector3(0, 20, 0);
 
         _worldCanvas.gameObject.SetActive(false);
+
+        _timer = FindObjectOfType<GameTimer>();
 
         myId = NetworkManager.LocalClientId;
 
@@ -133,7 +142,7 @@ public class PlayerController : NetworkBehaviour
 
     private void WriteNickname(ulong id)
     {
-        GameplayManager.instance.InitializeUI();
+        if(IsOwner) WriteNicknameServerRpc(SessionData.instance.LocalPlayerNickname, SessionData.instance.LocalPlayerColor);
         _myNicknameText.text = _playerNickname.Value.ToString();
         _playerNicknamePanel.color = new Color(_playerColor.Value.x, _playerColor.Value.y, _playerColor.Value.z, 0.8f);
     }
@@ -146,13 +155,33 @@ public class PlayerController : NetworkBehaviour
 
     private void LateUpdate()
     {
+        if (_myNicknameText.text == "not_loaded") WriteNickname(1);
+        if (_allowFootsteps.Value)
+        {
+            _timeBetweenSteps += Time.deltaTime;
+            if (_timeBetweenSteps > _footstepsTimeSpan)
+            {
+                _timeBetweenSteps = 0;
+                Footsteps();
+            }
+        }
+
         SessionData.instance.RotateTowardsLocalPlayer(_worldCanvas.transform);
 
         LeanBodyWithCamera(_playerSpineRotation.Value);
 
         if (!IsOwner) return;
 
+        if (_physics.IsGrounded() && _inputController.MoveVectorValue.magnitude > 0) AllowFootstepsServerRpc(true);
+        else AllowFootstepsServerRpc(false);
+
         Look();
+    }
+
+    [ServerRpc]
+    private void AllowFootstepsServerRpc(bool allow)
+    {
+        _allowFootsteps.Value = allow;
     }
 
     private void FixedUpdate()
@@ -199,6 +228,12 @@ public class PlayerController : NetworkBehaviour
         }
 
         _physics.MoveRigidbody(movement * movementSpeed * Time.fixedDeltaTime);
+    }
+
+    private void Footsteps()
+    {
+         SFX[] sfxArray = new[]{ SFX.STEPS_1, SFX.STEPS_2 };
+         SoundManager.instance.PlayRandomSFX(sfxArray, transform);
     }
 
     private void Jump()
@@ -262,10 +297,24 @@ public class PlayerController : NetworkBehaviour
     public void OnShotLoaded()
     {
         StartCoroutine(ZoomCameraForShot(_cannon.LoadTime, 65f));
+        _footstepsTimeSpan *= 5f;
+        LoadShotSoundServerRpc();
         _fireLock = true;
         _playerAnimator.SetTrigger(Animation.SHOOT);
         _speed *= 0.2f;
         //_cursorSens *= 0.01f;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void LoadShotSoundServerRpc()
+    {
+         LoadShotSoundClientRpc();
+    }
+
+    [ClientRpc]
+    private void LoadShotSoundClientRpc()
+    {
+        SoundManager.instance.PlaySFX(SFX.LOADING_SHOT, transform);
     }
 
     public void OnShotPerformed()
@@ -273,6 +322,7 @@ public class PlayerController : NetworkBehaviour
         StartCoroutine(ZoomCameraForShot(_cannon.LoadTime/4f, 75f));
         _fireLock = false;
         _physics.SetVelocity(-_camera.transform.forward * 10f);
+        _footstepsTimeSpan *= 0.2f;
         _speed *= 5f;
         //_cursorSens *= 100f;
     }
@@ -298,6 +348,7 @@ public class PlayerController : NetworkBehaviour
     private IEnumerator WaitForRespawn()
     {
         GameplayManager.instance.DeathCamera.OnDeath(_camera);
+        
         _inputLock = true;
         StartCoroutine(RespawnManager.instance.StartCounting((int)_respawnTime));
         yield return new WaitForSeconds(_respawnTime);
@@ -307,6 +358,8 @@ public class PlayerController : NetworkBehaviour
         transform.position = RespawnManager.instance.GetRespawnPoint();
         yield return new WaitForEndOfFrame();
         _inputLock = false;
+        _timer.ResetTimer();
+        System.GC.Collect();
         GameplayManager.instance.DeathCamera.OnRespawn(_camera);
         _physics.SetKinematic(false);
         ResetPhysics();
@@ -356,6 +409,7 @@ public class PlayerController : NetworkBehaviour
     [ClientRpc]
     public void OnGameFinishedClientRpc(FixedString64Bytes winnerNickname)
     {
+        SoundManager.instance.ClearMusic();
         OnGameFinished(winnerNickname);
     }
 
@@ -364,7 +418,7 @@ public class PlayerController : NetworkBehaviour
         //_playerAnimator.SetTrigger(Animation.CHARGE);
         _cursorLock.ForceCursorVisible();
         _grabPoint.gameObject.SetActive(false);
-        GameplayManager.instance.TriggerWin(winnerNickname.ToString());
+        GameplayManager.instance.TriggerWin(winnerNickname.ToString(), _timer.Minutes+":"+_timer.Seconds);
     }
 
     [ClientRpc]
@@ -389,6 +443,7 @@ public class PlayerController : NetworkBehaviour
     private void OnWinCelebration()
     {
         GameplayManager.instance.WinCamera.OnWin();
+        SoundManager.instance.PlayMusic(Music.WIN_MUSIC_2);
         _camera.enabled = false;
     }
 

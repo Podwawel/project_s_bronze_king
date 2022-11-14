@@ -52,6 +52,7 @@ public class NetworkManagerUI : MonoBehaviour
 
         _startLocalHostBtn.onClick.AddListener(() =>
         {
+            SoundManager.instance.PlaySFX(SFX.BUTTON_CLICK, transform);
             SceneLoader.instance.ChangeScene(2);
 
             SetLocalHost();
@@ -59,6 +60,7 @@ public class NetworkManagerUI : MonoBehaviour
         });
         _joinLocalHostBtn.onClick.AddListener(() =>
         {
+            SoundManager.instance.PlaySFX(SFX.BUTTON_CLICK, transform);
             SceneLoader.instance.ChangeScene(2);
 
             SetLocalHost();
@@ -66,6 +68,7 @@ public class NetworkManagerUI : MonoBehaviour
         });
         _hostBtn.onClick.AddListener(() =>
         {
+            SoundManager.instance.PlaySFX(SFX.BUTTON_CLICK, transform);
             var ipAddress = GetLocalIPAddress();
             UInt16 port = 7777;
             var nickname = _nicknameInputField.text;
@@ -84,6 +87,7 @@ public class NetworkManagerUI : MonoBehaviour
         });
         _manualHostBtn.onClick.AddListener(() =>
         {
+            SoundManager.instance.PlaySFX(SFX.BUTTON_CLICK, transform);
             var ipAddress = _IPInputField.text;
             var port = _portInputField.text;
             var nickname = _nicknameInputField.text;
@@ -103,6 +107,7 @@ public class NetworkManagerUI : MonoBehaviour
         });
         _clientBtn.onClick.AddListener(() =>
         {
+            SoundManager.instance.PlaySFX(SFX.BUTTON_CLICK, transform);
             var ipAddress = _IPInputField.text;
             var port = _portInputField.text;
 

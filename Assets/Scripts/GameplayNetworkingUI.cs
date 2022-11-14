@@ -28,20 +28,22 @@ public class GameplayNetworkingUI : NetworkBehaviour
 
         _unityTransport = FindObjectOfType<UnityTransport>();
 
-        if (NetworkManager.Singleton.IsConnectedClient) _hostIp.gameObject.SetActive(false);
-        else _hostIp.text = _unityTransport.ConnectionData.Address;
+        if (NetworkManager.IsHost)
+        {
+            _hostIp.text = _unityTransport.ConnectionData.Address;
+            _hostIp.gameObject.SetActive(true);
+        }
     }
 
-    public void ShowWinnerMessage(string nickname)
+    public void ShowWinnerMessage(string nickname, string time)
     {
-        _winnerText.text = nickname + " grabbed a crown!";
+        _winnerText.text = nickname + " grabbed a crown in " + time + "!";
         _winnerMsgPanel.DOFade(1, 1f);
     }
 
     public void Disconnect()
     {
-        //if(IsLocalPlayer) NetworkManager.Singleton.Shutdown();
-        //NetworkManager.Singleton.Shutdown();
+        SoundManager.instance.PlaySFX(SFX.BUTTON_CLICK, transform);
         if (IsHost) NetworkManager.Shutdown();
         else ShutdownServerRpc(NetworkManager.LocalClientId);
     }

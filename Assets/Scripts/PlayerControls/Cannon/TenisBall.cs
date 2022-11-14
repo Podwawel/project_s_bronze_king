@@ -37,6 +37,22 @@ public class TenisBall : NetworkBehaviour
         _rigidbody.isKinematic = false;
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        PlayBallSoundClientRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void PlayBallSoundServerRpc()
+    {
+        PlayBallSoundClientRpc();
+    }
+    [ClientRpc]
+    public void PlayBallSoundClientRpc()
+    {
+        SoundManager.instance.PlaySFX(SFX.BALL_HIT, transform);
+    }
+
     public void Shoot(Vector3 forceVector, Vector3 shotPoint, float power, ulong ownerId)
     {
         _rigidbody.isKinematic = false;

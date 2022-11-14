@@ -91,6 +91,11 @@ public class PlayerPhysics : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.gameObject.layer == 6)
+        {
+            WaterSplashSoundServerRpc();
+        }
+
         if (other.gameObject.layer == 9)
         {
             other.gameObject.SetActive(false);
@@ -106,6 +111,18 @@ public class PlayerPhysics : NetworkBehaviour
         {
             OnWinEvent?.Invoke();
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void WaterSplashSoundServerRpc()
+    {
+        WaterSplashSoundClientRpc();
+    }
+
+    [ClientRpc]
+    public void WaterSplashSoundClientRpc()
+    {
+        SoundManager.instance.PlaySFX(SFX.WATER_LOSE, transform);
     }
 
     public void StopRigidbody()

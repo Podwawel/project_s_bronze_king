@@ -51,8 +51,7 @@ public class TenisBallCannon : NetworkBehaviour
         yield return new WaitForSeconds(_loadTime);
 
         _setCooldown = true;
-
-        if(SessionData.instance.ServerAuthorizedBallShooting) SpawnTenisBallServerRpc(NetworkManager.LocalClientId); // method for server authorized ball shooting
+        if (SessionData.instance.ServerAuthorizedBallShooting) SpawnTenisBallServerRpc(NetworkManager.LocalClientId); // method for server authorized ball shooting
         else SpawnTenisBallLocal(); // method for client authorized ball shooting
         StartCoroutine(CountCooldown());
 
@@ -69,9 +68,16 @@ public class TenisBallCannon : NetworkBehaviour
         ammo.transform.position = _shotPoint.transform.position;
 
         ammo.Spawn();
+        ShotSoundClientRpc();
         ShotBall(ammo, id);
 
         StartCoroutine(ReturnTenisBallToPool(ammo));
+    }
+
+    [ClientRpc]
+    private void ShotSoundClientRpc() 
+    {
+        SoundManager.instance.PlaySFX(SFX.SHOT, transform);
     }
 
     public void ShotBall(NetworkObject ammoNet, ulong id)

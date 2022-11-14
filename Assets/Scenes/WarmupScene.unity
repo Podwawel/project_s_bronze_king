@@ -156,8 +156,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ProtocolType: 0
   m_MaxPacketQueueSize: 256
-  m_MaxPayloadSize: 44000
-  m_MaxSendQueueSize: 98304
+  m_MaxPayloadSize: 440000
+  m_MaxSendQueueSize: 983040
   m_HeartbeatTimeoutMS: 500
   m_ConnectTimeoutMS: 1000
   m_MaxConnectAttempts: 60
@@ -185,7 +185,7 @@ MonoBehaviour:
   RunInBackground: 1
   LogLevel: 1
   NetworkConfig:
-    ProtocolVersion: 0
+    ProtocolVersion: 1
     NetworkTransport: {fileID: 535090448}
     PlayerPrefab: {fileID: 2106934584065438251, guid: 8c08e39cde879954d9fde5d7ab2f0196, type: 3}
     NetworkPrefabs:

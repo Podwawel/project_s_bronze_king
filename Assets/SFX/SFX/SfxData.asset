@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20590c2bcddfd11458cbc405be0cc163, type: 3}
+  m_Name: SfxData
+  m_EditorClassIdentifier: 
+  _sfxPairs:
+  - name: 0
+    clip: {fileID: 8300000, guid: 88f25cab2c79ee948a6897464145e4c9, type: 3}
+    volume: 0.5
+    loop: 0
+    tridimensional: 1
+    crossScene: 0
+  - name: 1
+    clip: {fileID: 8300000, guid: 8ec374cb7de347a45849cc96f95decdc, type: 3}
+    volume: 0.5
+    loop: 0
+    tridimensional: 1
+    crossScene: 0
+  - name: 4
+    clip: {fileID: 8300000, guid: c9dead9cebe1cb741806d177072adda1, type: 3}
+    volume: 0.6
+    loop: 0
+    tridimensional: 1
+    crossScene: 0
+  - name: 2
+    clip: {fileID: 8300000, guid: c59c7941e58ddd74d9a2563157a6cb8f, type: 3}
+    volume: 1
+    loop: 0
+    tridimensional: 1
+    crossScene: 0
+  - name: 3
+    clip: {fileID: 8300000, guid: 0ad1412f150065542a2bb5b510f01baa, type: 3}
+    volume: 0.6
+    loop: 0
+    tridimensional: 1
+    crossScene: 0
+  - name: 5
+    clip: {fileID: 8300000, guid: 5608d20fa5eea424fb8869058b93268a, type: 3}
+    volume: 1
+    loop: 0
+    tridimensional: 1
+    crossScene: 0
+  - name: 6
+    clip: {fileID: 8300000, guid: cf71719a4c8cf11449cfecbd0b175154, type: 3}
+    volume: 0.3
+    loop: 1
+    tridimensional: 1
+    crossScene: 0
+  - name: 7
+    clip: {fileID: 8300000, guid: da5549f0d3449c74f850aca529b61f75, type: 3}
+    volume: 1
+    loop: 0
+    tridimensional: 0
+    crossScene: 1

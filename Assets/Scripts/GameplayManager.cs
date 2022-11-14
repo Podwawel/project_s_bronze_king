@@ -14,6 +14,8 @@ public class GameplayManager : Singleton<GameplayManager>
     private WinCamera _winCamera;
     [SerializeField]
     private DeathCamera _deathCamera;
+    [SerializeField]
+    private List<Transform> _wavesSoundPlace;
 
     public DeathCamera DeathCamera => _deathCamera;
     public WinCamera WinCamera => _winCamera;
@@ -22,6 +24,13 @@ public class GameplayManager : Singleton<GameplayManager>
     {
         base.Awake();
 
+        SoundManager.instance.ClearSfx();
+        SoundManager.instance.ClearMusic();
+        SoundManager.instance.PlayMusic(Music.GAMEPLAY_MUSIC_2);
+        foreach(var wave in _wavesSoundPlace)
+        {
+            SoundManager.instance.PlaySFX(SFX.WAVES, wave);
+        }
         Application.targetFrameRate = 60;
         _gameplayNetworkingUI.Initialize();
     }
@@ -31,8 +40,8 @@ public class GameplayManager : Singleton<GameplayManager>
         _gameplayUI.Initialize();
     }
 
-    public void TriggerWin(string nickname)
+    public void TriggerWin(string nickname, string time)
     {
-        _gameplayNetworkingUI.ShowWinnerMessage(nickname);
+        _gameplayNetworkingUI.ShowWinnerMessage(nickname, time);
     }
 }
