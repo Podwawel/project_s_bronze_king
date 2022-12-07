@@ -45,7 +45,7 @@ public class GameTimer : MonoBehaviour
 
     public void StopTimer()
     {
-        _timerPanel.DOFade(0, 0.5f);
+        _timerPanel.DOFade(0, 1f);
         _count = false;
     }
 }

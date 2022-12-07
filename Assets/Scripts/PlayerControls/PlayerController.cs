@@ -430,6 +430,7 @@ public class PlayerController : NetworkBehaviour
     private void AferWinActions()
     {
         //_playerAnimator.SetTrigger(Animation.VICTORY);
+        _timer.StopTimer();
         _winParticles.SetActive(true);
         _playerMeshRenderer.material = _winMaterial;
     }

@@ -20,10 +20,12 @@ public class CursorLock : MonoBehaviour
         {
             CursorLocked = false;
             Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = true;
         }
         else
         {
             CursorLocked = true;
+            Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
     }
@@ -31,6 +33,7 @@ public class CursorLock : MonoBehaviour
     public void ForceCursorVisible()
     {
         Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
     }
 
     private void OnDestroy()

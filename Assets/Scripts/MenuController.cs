@@ -16,7 +16,7 @@ public class MenuController : MonoBehaviour
 
     private void Awake()
     {
-        Cursor.SetCursor(_cursorTexture, Vector2.zero,CursorMode.ForceSoftware);
+        Cursor.SetCursor(_cursorTexture, Vector2.zero, CursorMode.ForceSoftware);
         SoundManager.instance.ClearSfx();
         SoundManager.instance.ClearMusic();
         SoundManager.instance.PlayMusic(Music.LOBBY_MUSIC_1);

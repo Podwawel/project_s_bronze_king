@@ -70,14 +70,14 @@ public class NetworkManagerUI : MonoBehaviour
         {
             SoundManager.instance.PlaySFX(SFX.BUTTON_CLICK, transform);
             var ipAddress = GetLocalIPAddress();
-            UInt16 port = 7777;
+            var port = _portInputField.text;
             var nickname = _nicknameInputField.text;
 
             CheckConnectionAvaiability();
 
             if (!_connectionDataIPCorrect || !_connectionDataPortCorrect || !_connectionDataNameCorrect) return;
 
-            var portConverted = port;
+            ushort portConverted = ushort.Parse(port);
 
             SetConnectionData(ipAddress, portConverted);
             SessionData.instance.hostIp = ipAddress;
@@ -126,8 +126,7 @@ public class NetworkManagerUI : MonoBehaviour
     }
 
     private void JoinAsClient(Scene scene, LoadSceneMode mode)
-    {
-        
+    {        
         SessionData.instance.AssignLocalPlayerNickname(_nicknameInputField.text);
         SessionData.instance.CreateLocalPlayerColor();
         NetworkManager.Singleton.StartClient();
